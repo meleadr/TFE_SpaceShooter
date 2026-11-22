@@ -2,6 +2,10 @@
 # Desktop players use `uv run spaceshooter` instead.
 import asyncio
 
+# pygbag only scans this file's imports to decide which packages to load in the
+# browser: without this explicit import, pygame stays an empty stub.
+import pygame  # noqa: F401
+
 from spaceshooter.app import App
 
 
