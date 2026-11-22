@@ -22,7 +22,8 @@ jobs:
       - uses: astral-sh/setup-uv@v6
       - run: uv sync --locked
       - run: >-
-          uv run python -m pygbag --build --app_name spaceshooter --title "Space Shooter"
+          uv run python -m pygbag --build --template web/template.tmpl
+          --app_name spaceshooter --title "Space Shooter"
           --width 600 --height 800 src
       - uses: actions/upload-pages-artifact@v3
         with:

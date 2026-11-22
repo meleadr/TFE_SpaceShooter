@@ -34,7 +34,7 @@ Le record est sauvegardé dans `%APPDATA%\spaceshooter\save.json` (Windows).
 uv run ruff check        # lint
 uv run ruff format       # formatage
 uv run pytest            # tests (headless)
-uv run python -m pygbag src   # version navigateur sur http://localhost:8000
+uv run python -m pygbag --template web/template.tmpl src   # version web sur http://localhost:8000
 ```
 
 À chaque push sur `main`, la CI lance lint + tests, et la version web est publiée sur GitHub Pages.
