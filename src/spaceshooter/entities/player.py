@@ -3,6 +3,7 @@ from enum import Enum, auto
 import pygame
 
 from spaceshooter import assets
+from spaceshooter.audio import audio
 from spaceshooter.controls import PlayerInput
 from spaceshooter.entities.bullet import Bullet
 from spaceshooter.settings import HEIGHT, WIDTH
@@ -57,13 +58,17 @@ class Player(pygame.sprite.Sprite):
         if self.input.fire and self.cooldown == 0.0:
             self.fire()
 
+        had_shield = self.shield > 0
         self.shield = max(self.shield - dt, 0.0)
+        if had_shield and self.shield == 0:
+            audio.play("shield_down")
         self.invulnerable = max(self.invulnerable - dt, 0.0)
         blink_off = int(self.invulnerable * self.BLINK_RATE) % 2 == 1
         self.image = self.hidden_image if blink_off else self.visible_image
 
     def fire(self) -> None:
         Bullet(self.rect.midtop, self.bullets)
+        audio.play("shoot")
         self.cooldown = self.FIRE_COOLDOWN
 
     def hit(self) -> HitResult:

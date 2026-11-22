@@ -4,12 +4,14 @@ import json
 import logging
 from pathlib import Path
 
-from platformdirs import user_data_path
-
 log = logging.getLogger(__name__)
 
 
 def default_path() -> Path:
+    try:
+        from platformdirs import user_data_path
+    except ImportError:  # e.g. in the browser build, where the folder does not matter
+        return Path.home() / ".spaceshooter" / "save.json"
     # e.g. %APPDATA%\spaceshooter\save.json on Windows
     return user_data_path("spaceshooter", appauthor=False, roaming=True) / "save.json"
 

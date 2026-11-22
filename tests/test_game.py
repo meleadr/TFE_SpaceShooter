@@ -4,11 +4,14 @@ import pygame
 import pytest
 
 from spaceshooter import difficulty
-from spaceshooter.entities import Bullet, Meteor, Player, PowerUp, PowerUpKind
+from spaceshooter.controls import PlayerInput
+from spaceshooter.entities import Bullet, HitResult, Meteor, Player, PowerUp, PowerUpKind
 from spaceshooter.entities.meteor import METEOR_IMAGES
 from spaceshooter.save import SaveData
 from spaceshooter.scenes import SceneManager
 from spaceshooter.scenes.game import GameScene
+from spaceshooter.scenes.gameover import GameOverScene
+from spaceshooter.scenes.pause import PauseScene
 from spaceshooter.settings import HEIGHT, STEP, WIDTH
 
 
@@ -60,26 +63,44 @@ def test_invulnerability_wears_off(game):
     game.player.hit()
     for _ in range(round(Player.INVULNERABLE_TIME / STEP) + 1):
         game.step(STEP)
-    assert game.player.hit()
+    assert game.player.hit() is HitResult.DAMAGED
 
 
-def test_losing_all_lives_ends_the_game_and_freezes_it(game):
+def test_losing_all_lives_shows_game_over_after_a_delay(game):
+    game.manager.push(game)
     game.player.lives = 1
     place_meteor(game, game.player.rect.center)
     game.step(STEP)
     assert game.game_over
+    assert game.manager.top is game  # explosion plays first
 
-    meteor = place_meteor(game, (100, 100), speed=300)
-    game.update(1.0)
-    assert meteor.position.y == pytest.approx(100)
+    for _ in range(round(GameScene.GAME_OVER_DELAY / STEP) + 1):
+        game.step(STEP)
+    assert isinstance(game.manager.top, GameOverScene)
 
 
-def test_enter_restarts_after_game_over(game):
+def test_player_is_frozen_once_dead(game):
+    game.player.lives = 0
+    game.step(STEP)
+    x = game.player.rect.x
+    game.player.input = PlayerInput(direction=1, fire=True)
+    game.step(STEP)
+    assert game.player.rect.x == x
+    assert len(game.bullets) == 0
+
+
+@pytest.mark.parametrize("key", [pygame.K_ESCAPE, pygame.K_p])
+def test_pause_key_opens_pause_overlay(game, key):
     game.manager.push(game)
-    game.game_over = True
-    game.handle_event(pygame.event.Event(pygame.KEYDOWN, key=pygame.K_RETURN))
-    assert game.manager.top is not game
-    assert isinstance(game.manager.top, GameScene)
+    game.handle_event(pygame.event.Event(pygame.KEYDOWN, key=key))
+    assert isinstance(game.manager.top, PauseScene)
+    assert [type(s) for s in game.manager.visible_scenes()] == [GameScene, PauseScene]
+
+
+def test_losing_window_focus_pauses(game):
+    game.manager.push(game)
+    game.handle_event(pygame.event.Event(pygame.WINDOWFOCUSLOST))
+    assert isinstance(game.manager.top, PauseScene)
 
 
 def test_spawner_respects_max_meteors(game):

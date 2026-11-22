@@ -1,6 +1,6 @@
 [project]
 name = "spaceshooter"
-version = "0.1.0"
+version = "1.0.0"
 description = "Vertical space shooter, a 2026 remaster of a 2019 school project (TFE)."
 readme = "README.md"
 license = "MIT"
@@ -22,7 +22,7 @@ packages = ["src/spaceshooter"]
 
 [tool.ruff]
 line-length = 100
-target-version = "py313"
+target-version = "py312"  # the browser build (pygbag) runs Python 3.12
 extend-exclude = ["legacy"]
 
 [tool.ruff.lint]

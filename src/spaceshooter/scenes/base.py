@@ -63,6 +63,13 @@ class SceneManager:
         self.stack.append(scene)
         scene.on_enter()
 
+    def reset(self, scene: Scene) -> None:
+        """Drop every scene (e.g. game + pause overlay) and start fresh with `scene`."""
+        while self.stack:
+            self.stack.pop().on_exit()
+        self.stack.append(scene)
+        scene.on_enter()
+
     def quit(self) -> None:
         self.running = False
 
