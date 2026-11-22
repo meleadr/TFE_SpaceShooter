@@ -1,6 +1,6 @@
 [project]
 name = "spaceshooter"
-version = "1.0.0"
+version = "2.0.0"
 description = "Vertical space shooter, a 2026 remaster of a 2019 school project (TFE)."
 readme = "README.md"
 license = "MIT"
