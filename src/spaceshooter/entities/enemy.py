@@ -18,14 +18,17 @@ class EnemyBullet(pygame.sprite.Sprite):
         center: tuple[float, float],
         velocity: pygame.Vector2,
         *groups: pygame.sprite.Group,
+        image: str = "Lasers/laserRed01.png",
+        scale: float = 0.8,
+        radius: float = 5,
     ) -> None:
         super().__init__(*groups)
         self.velocity = pygame.Vector2(velocity)
         # The laser sprite points up; turn it to face where it is going.
         angle = self.velocity.angle_to(pygame.Vector2(0, -1))
-        self.image = pygame.transform.rotate(assets.image("Lasers/laserRed01.png", 0.8), angle)
+        self.image = pygame.transform.rotate(assets.image(image, scale), angle)
         self.rect = self.image.get_frect(center=center)
-        self.radius = 5
+        self.radius = radius
 
     def update(self, dt: float) -> None:
         self.rect.center += self.velocity * dt
@@ -62,6 +65,7 @@ class Enemy(pygame.sprite.Sprite):
         self.rng = rng
         self.fire_rate = fire_rate  # >1 shoots more often
         self.hp = self.HP
+        self.points = self.SCORE
         self.age = 0.0
         self.flash = 0.0
         self.fire_timer = self.next_fire_delay()

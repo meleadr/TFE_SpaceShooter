@@ -47,7 +47,7 @@ uv run python -m pygbag --template web/template.tmpl src   # version web sur htt
 - **M2** : météorites, collisions, score, difficulté ✅
 - **M3** : bonus (bouclier, vie), HUD, meilleur score ✅
 - **M4** : menu, pause, game over, sons, explosions, fond défilant, version web ✅ → **v1.0**
-- **v2** : déplacement 8 directions et météorites qui se brisent ✅, ennemis et vagues ✅, armes ✅, boss, manette, top 10
+- **v2** : déplacement 8 directions et météorites qui se brisent ✅, ennemis et vagues ✅, armes ✅, boss toutes les 4 vagues ✅, manette, top 10
 
 ## Crédits et licences
 

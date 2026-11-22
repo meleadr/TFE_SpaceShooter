@@ -10,6 +10,7 @@ from dataclasses import dataclass, field
 
 import pygame
 
+from spaceshooter.entities.boss import Boss
 from spaceshooter.entities.enemy import Drone, Enemy, Gunship
 from spaceshooter.settings import WIDTH
 
@@ -17,6 +18,7 @@ FIRST_WAVE_DELAY = 20.0  # seconds of meteors before the first wave
 WAVE_INTERVAL = 30.0  # seconds of meteors between two waves
 BANNER_TIME = 2.0  # the "VAGUE n" banner shows before the ships arrive
 DRONE_SPACING = 0.45  # seconds between two drones of the same column
+BOSS_EVERY = 4  # every 4th wave is a boss fight
 
 
 @dataclass
@@ -29,6 +31,7 @@ class Spawn:
 class Wave:
     number: int
     schedule: list[Spawn] = field(default_factory=list)
+    boss: bool = False
 
 
 def drone_count(number: int) -> int:
@@ -68,7 +71,7 @@ class WaveDirector:
     @property
     def banner(self) -> str | None:
         if self.wave is not None and self.elapsed < BANNER_TIME:
-            return f"VAGUE {self.wave.number}"
+            return "ALERTE : BOSS" if self.wave.boss else f"VAGUE {self.wave.number}"
         return None
 
     def update(self, dt: float) -> None:
@@ -92,6 +95,10 @@ class WaveDirector:
         self.elapsed = 0.0
 
     def build(self, number: int) -> Wave:
+        if number % BOSS_EVERY == 0:
+            wave = Wave(number, boss=True)
+            wave.schedule.append(Spawn(BANNER_TIME, self.boss_factory(number // BOSS_EVERY)))
+            return wave
         wave = Wave(number)
         rate = fire_rate(number)
         drones = drone_count(number)
@@ -116,6 +123,19 @@ class WaveDirector:
     def drone_factory(self, x: float, phase: float, rate: float) -> Callable[[], Enemy]:
         def make() -> Enemy:
             return Drone((x, -40), self.enemy_bullets, self.rng, rate, self.enemies, phase=phase)
+
+        return make
+
+    def boss_factory(self, boss_number: int) -> Callable[[], Enemy]:
+        def make() -> Enemy:
+            return Boss(
+                (WIDTH / 2, -90),
+                self.enemy_bullets,
+                self.rng,
+                1.0,
+                self.enemies,
+                number=boss_number,
+            )
 
         return make
 

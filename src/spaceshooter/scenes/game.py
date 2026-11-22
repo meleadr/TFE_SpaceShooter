@@ -9,6 +9,7 @@ from spaceshooter.audio import audio
 from spaceshooter.controls import PlayerInput, read_input
 from spaceshooter.effects import FIRE_COLORS, ROCK_COLORS, Particles, Starfield
 from spaceshooter.entities import (
+    Boss,
     Gunship,
     HitResult,
     MeteorSpawner,
@@ -141,21 +142,34 @@ class GameScene(Scene):
                 if not enemy.alive():
                     break
                 if enemy.damage():
-                    self.score += enemy.SCORE
-                    if isinstance(enemy, Gunship):  # gunships always drop a weapon upgrade
-                        x, y = enemy.rect.center
-                        PowerUp(PowerUpKind.WEAPON, x, self.powerups, y=y)
-                    self.particles.burst(enemy.rect.center, 36, ENEMY_COLORS, size=(3, 7))
-                    audio.play("explosion")
+                    self.destroyed(enemy)
                 else:
                     self.particles.burst(enemy.rect.center, 6, FIRE_COLORS, speed=(40, 120))
+
+    def destroyed(self, enemy: pygame.sprite.Sprite) -> None:
+        self.score += enemy.points
+        x, y = enemy.rect.center
+        if isinstance(enemy, Boss):
+            # Big finale and a reward: a life and a weapon upgrade.
+            for _ in range(4):
+                center = (x + self.rng.uniform(-60, 60), y + self.rng.uniform(-50, 50))
+                self.particles.burst(center, 50, ENEMY_COLORS, speed=(80, 360), size=(3, 9))
+            PowerUp(PowerUpKind.LIFE, x - 40, self.powerups, y=y)
+            PowerUp(PowerUpKind.WEAPON, x + 40, self.powerups, y=y)
+            audio.play("player_hit")
+        else:
+            if isinstance(enemy, Gunship):  # gunships always drop a weapon upgrade
+                PowerUp(PowerUpKind.WEAPON, x, self.powerups, y=y)
+            self.particles.burst(enemy.rect.center, 36, ENEMY_COLORS, size=(3, 7))
+        audio.play("explosion")
 
     def crash(self, sprite: pygame.sprite.Sprite, colors: list[tuple[int, int, int]]) -> None:
         """Something hit the player ship: meteor, enemy ship or enemy shot."""
         result = self.player.hit()
         if result is HitResult.IGNORED:
             return
-        sprite.kill()  # destroyed outright: no fragments, no score
+        if not isinstance(sprite, Boss):  # the boss shrugs off a ram
+            sprite.kill()  # destroyed outright: no fragments, no score
         self.particles.burst(sprite.rect.center, 16, colors)
         if result is HitResult.DAMAGED:
             self.particles.burst(self.player.rect.center, 30, FIRE_COLORS, size=(3, 6))
@@ -196,6 +210,9 @@ class GameScene(Scene):
             self.player.draw_shield(surface)
         self.particles.draw(surface)
         self.hud.draw(surface, self.score, self.best_before, self.level, self.player)
+        for enemy in self.enemies:
+            if isinstance(enemy, Boss):
+                self.hud.draw_boss_bar(surface, enemy.hp / enemy.max_hp)
         banner = self.waves.banner
         if banner and int(self.time * 4) % 2 == 0:  # blinks twice a second
             draw_text(surface, banner, 48, (WIDTH / 2, HEIGHT * 0.4), GOLD)

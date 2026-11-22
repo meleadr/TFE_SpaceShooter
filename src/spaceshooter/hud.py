@@ -10,6 +10,7 @@ WHITE = (255, 255, 255)
 GREY = (170, 170, 200)
 GOLD = (255, 210, 90)
 SHIELD_BLUE = (80, 170, 255)
+BOSS_RED = (230, 60, 60)
 MARGIN = 12
 
 
@@ -32,6 +33,17 @@ class Hud:
         self.draw_lives(surface, player.lives)
         if player.shield > 0 and player.has_lives:
             self.draw_shield_gauge(surface, player.shield / Player.SHIELD_TIME)
+
+    def draw_boss_bar(self, surface: pygame.Surface, ratio: float) -> None:
+        bar = pygame.Rect(0, 0, 320, 10)
+        bar.midtop = (WIDTH / 2, 100)  # just below the HUD band, clear of score and lives
+        label = self.small_font.render("BOSS", True, BOSS_RED)
+        surface.blit(label, label.get_rect(midbottom=(WIDTH / 2, bar.top - 3)))
+        pygame.draw.rect(surface, GREY, bar, width=1, border_radius=4)
+        fill = bar.inflate(-2, -2)
+        fill.width = round(fill.width * max(min(ratio, 1.0), 0.0))
+        if fill.width > 0:
+            pygame.draw.rect(surface, BOSS_RED, fill, border_radius=3)
 
     def draw_weapon(self, surface: pygame.Surface, level: int) -> None:
         label = self.small_font.render("Arme", True, GREY)
