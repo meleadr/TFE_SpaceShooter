@@ -54,7 +54,7 @@ uv run python -m pygbag --template web/template.tmpl src   # version web sur htt
 - **M3** : bonus (bouclier, vie), HUD, meilleur score ✅
 - **M4** : menu, pause, game over, sons, explosions, fond défilant, version web ✅ → **v1.0**
 - **v2** : déplacement 8 directions et météorites qui se brisent ✅, ennemis et vagues ✅, armes ✅, boss toutes les 4 vagues ✅, manette et touches personnalisables ✅, top 10 local ✅ → **v2.0**
-- **v3** : musique, contrôles tactiles pour le mobile… (à définir)
+- **v3** ([plan](docs/plan-v3.md)) : options et musique, ressenti (tremblements, arrêts sur image), combo, boss variés, contrôles tactiles
 
 ## Crédits et licences
 
