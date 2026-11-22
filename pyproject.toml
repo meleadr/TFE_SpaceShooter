@@ -33,6 +33,7 @@ testpaths = ["tests"]
 
 [dependency-groups]
 dev = [
+    "pygbag>=0.9.3",
     "pytest>=9.2.0",
     "ruff>=0.17.6",
 ]
