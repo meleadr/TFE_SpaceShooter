@@ -4,6 +4,7 @@ import asyncio
 
 import pygame
 
+from spaceshooter.save import SaveData
 from spaceshooter.scenes import SceneManager
 from spaceshooter.scenes.game import GameScene
 from spaceshooter.settings import FPS, HEIGHT, STEP, TITLE, WIDTH
@@ -11,14 +12,15 @@ from spaceshooter.timing import FixedStep
 
 
 class App:
-    def __init__(self) -> None:
+    def __init__(self, save: SaveData | None = None) -> None:
         pygame.init()
         pygame.display.set_caption(TITLE)
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.SCALED)
         self.clock = pygame.time.Clock()
         self.stepper = FixedStep()
         self.scenes = SceneManager()
-        self.scenes.push(GameScene(self.scenes))
+        self.save = save or SaveData()
+        self.scenes.push(GameScene(self.scenes, self.save))
 
     def handle_event(self, event: pygame.event.Event) -> None:
         if event.type == pygame.QUIT:

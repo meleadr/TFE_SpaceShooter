@@ -1,6 +1,7 @@
 import pygame
 
 from spaceshooter.app import App
+from spaceshooter.save import SaveData
 from spaceshooter.scenes import Scene, SceneManager
 
 
@@ -55,8 +56,8 @@ def test_overlay_draws_over_the_scene_below():
     assert [s.name for s in manager.visible_scenes()] == ["game", "pause"]
 
 
-def test_app_runs_frames_headless_and_quits():
-    app = App()
+def test_app_runs_frames_headless_and_quits(tmp_path):
+    app = App(SaveData(tmp_path / "save.json"))
     for _ in range(5):
         app.frame(1 / 60)
     pygame.event.post(pygame.event.Event(pygame.QUIT))

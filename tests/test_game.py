@@ -4,17 +4,20 @@ import pygame
 import pytest
 
 from spaceshooter import difficulty
-from spaceshooter.entities import Bullet, Meteor, Player
+from spaceshooter.entities import Bullet, Meteor, Player, PowerUp, PowerUpKind
 from spaceshooter.entities.meteor import METEOR_IMAGES
+from spaceshooter.save import SaveData
 from spaceshooter.scenes import SceneManager
 from spaceshooter.scenes.game import GameScene
 from spaceshooter.settings import HEIGHT, STEP, WIDTH
 
 
 @pytest.fixture
-def game(display):
-    scene = GameScene(SceneManager(), rng=random.Random(42))
-    scene.spawner.timer = float("inf")  # tests place meteors themselves
+def game(display, tmp_path):
+    scene = GameScene(SceneManager(), SaveData(tmp_path / "save.json"), rng=random.Random(42))
+    # Tests place meteors and power-ups themselves.
+    scene.meteor_spawner.timer = float("inf")
+    scene.powerup_spawner.timer = float("inf")
     return scene
 
 
@@ -80,10 +83,61 @@ def test_enter_restarts_after_game_over(game):
 
 
 def test_spawner_respects_max_meteors(game):
-    game.spawner.timer = 0.0
+    game.meteor_spawner.timer = 0.0
     for _ in range(round(10 / STEP)):
-        game.spawner.update(STEP, score=0)
+        game.meteor_spawner.update(STEP, score=0)
     assert len(game.meteors) == difficulty.max_meteors(0)
     for meteor in game.meteors:
         assert meteor.rect.left >= 0 and meteor.rect.right <= WIDTH
         assert meteor.rect.bottom <= HEIGHT
+
+
+def test_shield_absorbs_meteors_without_losing_lives(game):
+    game.player.activate_shield()
+    meteor = place_meteor(game, game.player.rect.center)
+    game.step(STEP)
+    assert game.player.lives == Player.MAX_LIVES
+    assert not meteor.alive()
+
+
+def test_shield_wears_off(game):
+    game.player.activate_shield()
+    for _ in range(round(Player.SHIELD_TIME / STEP) + 1):
+        game.step(STEP)
+    assert game.player.shield == 0
+    place_meteor(game, game.player.rect.center)
+    game.step(STEP)
+    assert game.player.lives == Player.MAX_LIVES - 1
+
+
+@pytest.mark.parametrize(
+    ("kind", "lives_before", "lives_after", "shielded"),
+    [
+        (PowerUpKind.SHIELD, 3, 3, True),
+        (PowerUpKind.LIFE, 2, 3, False),
+        (PowerUpKind.LIFE, 3, 3, False),  # capped at MAX_LIVES
+    ],
+)
+def test_picking_up_powerups(game, kind, lives_before, lives_after, shielded):
+    game.player.lives = lives_before
+    powerup = PowerUp(kind, game.player.rect.centerx, game.powerups)
+    powerup.rect.center = game.player.rect.center
+    game.step(STEP)
+    assert not powerup.alive()
+    assert game.player.lives == lives_after
+    assert (game.player.shield > 0) is shielded
+
+
+def test_powerup_spawner_only_drops_lives_when_hurt(game):
+    kinds = {game.powerup_spawner.spawn(player_hurt=False).kind for _ in range(50)}
+    assert kinds == {PowerUpKind.SHIELD}
+    kinds = {game.powerup_spawner.spawn(player_hurt=True).kind for _ in range(50)}
+    assert kinds == {PowerUpKind.SHIELD, PowerUpKind.LIFE}
+
+
+def test_game_over_records_best_score(game):
+    game.score = 12
+    game.player.lives = 0
+    game.step(STEP)
+    assert game.new_record
+    assert SaveData(game.save.path).best_score == 12
