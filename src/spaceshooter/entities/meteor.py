@@ -40,7 +40,8 @@ class MeteorSize(Enum):
 
 class Meteor(pygame.sprite.Sprite):
     HITBOX_RATIO = 0.42  # circle radius as a fraction of the sprite size, a bit forgiving
-    FRAGMENT_SIDE_SPEED = (60.0, 140.0)  # px/s, fragments fly apart sideways
+    FRAGMENT_SIDE_SPEED = (40.0, 90.0)  # px/s, fragments drift apart sideways
+    FRAGMENT_FALL_RATIO = (0.75, 0.9)  # fragments fall a bit slower than their parent
 
     def __init__(
         self,
@@ -89,7 +90,7 @@ class Meteor(pygame.sprite.Sprite):
                 self.position,
                 (
                     side * rng.uniform(*self.FRAGMENT_SIDE_SPEED),
-                    self.velocity.y * rng.uniform(0.9, 1.15),
+                    self.velocity.y * rng.uniform(*self.FRAGMENT_FALL_RATIO),
                 ),
                 self.spin * 1.5 * side,
                 *groups,

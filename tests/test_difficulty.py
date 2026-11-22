@@ -14,7 +14,7 @@ def test_difficulty_grows_then_caps():
     counts = [difficulty.max_meteors(lvl) for lvl in levels]
     intervals = [difficulty.spawn_interval(lvl) for lvl in levels]
     assert mins == sorted(mins) and mins[-1] == 500
-    assert counts == sorted(counts) and counts[0] == 4 and counts[-1] == 10
+    assert counts == sorted(counts) and counts[0] == 3 and counts[-1] == 10
     assert intervals == sorted(intervals, reverse=True) and intervals[-1] == 0.25
 
 
