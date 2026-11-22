@@ -6,7 +6,7 @@ Remaster 2026 de mon TFE de 2019 (la version d'origine est dans [`legacy/`](lega
 **Jouer dans le navigateur : https://meleadr.github.io/TFE_SpaceShooter/**
 
 Détruis les météorites (les grosses se brisent en plus petites), repousse les vagues
-d'ennemis (drones et canonnières qui te visent), attrape les bonus (🛡️ bouclier 4 s, ❤️ vie)
+d'ennemis (drones et canonnières qui te visent), attrape les bonus (🛡️ bouclier 4 s, ❤️ vie, ⚡ arme : tir double, triple puis en éventail)
 et bats ton record. La difficulté augmente tous les 20 points.
 
 ## Lancer le jeu
@@ -47,7 +47,7 @@ uv run python -m pygbag --template web/template.tmpl src   # version web sur htt
 - **M2** : météorites, collisions, score, difficulté ✅
 - **M3** : bonus (bouclier, vie), HUD, meilleur score ✅
 - **M4** : menu, pause, game over, sons, explosions, fond défilant, version web ✅ → **v1.0**
-- **v2** : déplacement 8 directions et météorites qui se brisent ✅, ennemis et vagues ✅, armes, boss, manette, top 10
+- **v2** : déplacement 8 directions et météorites qui se brisent ✅, ennemis et vagues ✅, armes ✅, boss, manette, top 10
 
 ## Crédits et licences
 

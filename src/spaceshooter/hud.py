@@ -8,6 +8,7 @@ from spaceshooter.settings import WIDTH
 
 WHITE = (255, 255, 255)
 GREY = (170, 170, 200)
+GOLD = (255, 210, 90)
 SHIELD_BLUE = (80, 170, 255)
 MARGIN = 12
 
@@ -27,9 +28,20 @@ class Hud:
             self.small_font.render(f"Record {max(best, score)}  -  Niveau {level + 1}", True, GREY),
             (MARGIN, MARGIN + 32),
         )
+        self.draw_weapon(surface, player.weapon)
         self.draw_lives(surface, player.lives)
         if player.shield > 0 and player.has_lives:
             self.draw_shield_gauge(surface, player.shield / Player.SHIELD_TIME)
+
+    def draw_weapon(self, surface: pygame.Surface, level: int) -> None:
+        label = self.small_font.render("Arme", True, GREY)
+        surface.blit(label, (MARGIN, MARGIN + 54))
+        for i in range(Player.MAX_WEAPON):
+            pip = pygame.Rect(MARGIN + label.get_width() + 10 + i * 14, MARGIN + 58, 10, 10)
+            if i < level:
+                pygame.draw.rect(surface, GOLD, pip, border_radius=2)
+            else:
+                pygame.draw.rect(surface, GREY, pip, width=1, border_radius=2)
 
     def draw_lives(self, surface: pygame.Surface, lives: int) -> None:
         width = self.life_icon.get_width()

@@ -9,9 +9,11 @@ from spaceshooter.audio import audio
 from spaceshooter.controls import PlayerInput, read_input
 from spaceshooter.effects import FIRE_COLORS, ROCK_COLORS, Particles, Starfield
 from spaceshooter.entities import (
+    Gunship,
     HitResult,
     MeteorSpawner,
     Player,
+    PowerUp,
     PowerUpKind,
     PowerUpSpawner,
 )
@@ -25,6 +27,7 @@ from spaceshooter.ui import GOLD, draw_text
 from spaceshooter.waves import WaveDirector
 
 PAUSE_KEYS = (pygame.K_ESCAPE, pygame.K_p)
+MAXED_WEAPON_BONUS = 5  # points for a weapon pickup when already at max
 ENEMY_COLORS = [(255, 90, 60), (255, 170, 60), (255, 240, 180), (140, 220, 120)]
 
 
@@ -139,6 +142,9 @@ class GameScene(Scene):
                     break
                 if enemy.damage():
                     self.score += enemy.SCORE
+                    if isinstance(enemy, Gunship):  # gunships always drop a weapon upgrade
+                        x, y = enemy.rect.center
+                        PowerUp(PowerUpKind.WEAPON, x, self.powerups, y=y)
                     self.particles.burst(enemy.rect.center, 36, ENEMY_COLORS, size=(3, 7))
                     audio.play("explosion")
                 else:
@@ -162,6 +168,10 @@ class GameScene(Scene):
             if powerup.kind is PowerUpKind.SHIELD:
                 self.player.activate_shield()
                 audio.play("shield_up")
+            elif powerup.kind is PowerUpKind.WEAPON:
+                if not self.player.upgrade_weapon():
+                    self.score += MAXED_WEAPON_BONUS
+                audio.play("weapon_up")
             else:
                 self.player.gain_life()
                 audio.play("life_up")

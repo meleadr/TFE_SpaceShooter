@@ -1,4 +1,5 @@
 from enum import Enum, auto
+from typing import ClassVar
 
 import pygame
 
@@ -9,7 +10,7 @@ from spaceshooter.entities.bullet import Bullet
 from spaceshooter.settings import HEIGHT, WIDTH
 
 # The ship can roam the whole screen except the HUD band at the top.
-HUD_HEIGHT = 70
+HUD_HEIGHT = 85
 PLAYFIELD = pygame.Rect(0, HUD_HEIGHT, WIDTH, HEIGHT - HUD_HEIGHT)
 
 
@@ -28,6 +29,14 @@ class Player(pygame.sprite.Sprite):
     BLINK_RATE = 10  # visibility toggles per second while invulnerable
     HITBOX_RATIO = 0.4
     SHIELD_TIME = 4.0
+    # Weapon level -> shots fired at once, as (x offset from the nose, angle in degrees).
+    WEAPON_PATTERNS: ClassVar[dict[int, tuple[tuple[int, int], ...]]] = {
+        1: ((0, 0),),
+        2: ((-12, 0), (12, 0)),
+        3: ((0, 0), (-10, -10), (10, 10)),
+        4: ((0, 0), (-10, -8), (10, 8), (-16, -18), (16, 18)),
+    }
+    MAX_WEAPON = max(WEAPON_PATTERNS)
 
     def __init__(self, bullets: pygame.sprite.Group, *groups: pygame.sprite.Group) -> None:
         super().__init__(*groups)
@@ -43,6 +52,7 @@ class Player(pygame.sprite.Sprite):
         self.lives = self.MAX_LIVES
         self.invulnerable = 0.0
         self.shield = 0.0  # seconds of shield left
+        self.weapon = 1
 
     @property
     def has_lives(self) -> bool:
@@ -72,7 +82,9 @@ class Player(pygame.sprite.Sprite):
         self.image = self.hidden_image if blink_off else self.visible_image
 
     def fire(self) -> None:
-        Bullet(self.rect.midtop, self.bullets)
+        x, y = self.rect.midtop
+        for offset, angle in self.WEAPON_PATTERNS[self.weapon]:
+            Bullet((x + offset, y), self.bullets, angle=angle)
         audio.play("shoot")
         self.cooldown = self.FIRE_COOLDOWN
 
@@ -82,11 +94,19 @@ class Player(pygame.sprite.Sprite):
         if self.invulnerable > 0 or not self.has_lives:
             return HitResult.IGNORED
         self.lives -= 1
+        self.weapon = max(self.weapon - 1, 1)  # losing a life costs one weapon level
         self.invulnerable = self.INVULNERABLE_TIME
         return HitResult.DAMAGED
 
     def activate_shield(self) -> None:
         self.shield = self.SHIELD_TIME
+
+    def upgrade_weapon(self) -> bool:
+        """Returns False when the weapon was already at its maximum."""
+        if self.weapon >= self.MAX_WEAPON:
+            return False
+        self.weapon += 1
+        return True
 
     def gain_life(self) -> None:
         self.lives = min(self.lives + 1, self.MAX_LIVES)

@@ -18,6 +18,7 @@ SOUNDS: dict[str, tuple[tuple[str, ...], float]] = {
     "shield_up": (("sfx_shieldUp.ogg",), 0.6),
     "shield_down": (("sfx_shieldDown.ogg",), 0.6),
     "life_up": (("sfx_twoTone.ogg",), 0.6),
+    "weapon_up": (("forceField_000.ogg",), 0.6),
     "game_over": (("sfx_lose.ogg",), 0.7),
     "menu_move": (("sfx_laser2.ogg",), 0.2),
     "menu_confirm": (("sfx_zap.ogg",), 0.5),

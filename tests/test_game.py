@@ -158,10 +158,10 @@ def test_picking_up_powerups(game, kind, lives_before, lives_after, shielded):
 
 
 def test_powerup_spawner_only_drops_lives_when_hurt(game):
-    kinds = {game.powerup_spawner.spawn(player_hurt=False).kind for _ in range(50)}
-    assert kinds == {PowerUpKind.SHIELD}
-    kinds = {game.powerup_spawner.spawn(player_hurt=True).kind for _ in range(50)}
-    assert kinds == {PowerUpKind.SHIELD, PowerUpKind.LIFE}
+    kinds = {game.powerup_spawner.spawn(player_hurt=False).kind for _ in range(80)}
+    assert kinds == {PowerUpKind.SHIELD, PowerUpKind.WEAPON}
+    kinds = {game.powerup_spawner.spawn(player_hurt=True).kind for _ in range(80)}
+    assert kinds == {PowerUpKind.SHIELD, PowerUpKind.LIFE, PowerUpKind.WEAPON}
 
 
 def test_game_over_records_best_score(game):
