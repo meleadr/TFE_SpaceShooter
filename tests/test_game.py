@@ -168,7 +168,7 @@ def test_game_over_records_best_score(game):
     game.score = 12
     game.player.lives = 0
     game.step(STEP)
-    assert game.new_record
+    assert game.rank == 1
     assert SaveData(game.save.path).best_score == 12
 
 

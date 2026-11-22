@@ -12,11 +12,11 @@ def test_best_score_round_trips_and_creates_folders(tmp_path):
     assert SaveData(path).best_score == 42
 
 
-def test_lower_score_is_not_a_record(tmp_path):
+def test_lower_or_equal_score_is_not_a_record(tmp_path):
     save = SaveData(tmp_path / "save.json")
     save.submit_score(10)
-    assert not save.submit_score(10)
-    assert not save.submit_score(3)
+    assert save.submit_score(10) == 2  # ties go after: first come keeps the place
+    assert save.submit_score(3) == 3
     assert save.best_score == 10
 
 

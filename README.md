@@ -7,7 +7,7 @@ Remaster 2026 de mon TFE de 2019 (la version d'origine est dans [`legacy/`](lega
 
 Détruis les météorites (les grosses se brisent en plus petites), repousse les vagues
 d'ennemis (drones et canonnières qui te visent), attrape les bonus (🛡️ bouclier 4 s, ❤️ vie, ⚡ arme : tir double, triple puis en éventail)
-et bats ton record. La difficulté augmente tous les 20 points.
+et entre dans le top 10 (nom en 3 lettres, façon borne d'arcade). La difficulté augmente tous les 20 points.
 
 ## Lancer le jeu
 
@@ -33,7 +33,7 @@ depuis l'écran titre.
 **Manette** (Xbox, PlayStation, Switch Pro… branchée à chaud) : stick gauche ou croix pour
 bouger, A / X / RB / RT pour tirer, Start pour la pause, A / B pour valider / revenir.
 
-Le record et les touches sont sauvegardés dans `%APPDATA%\spaceshooter\save.json` (Windows).
+Le top 10 et les touches sont sauvegardés dans `%APPDATA%\spaceshooter\save.json` (Windows), et dans le `localStorage` du navigateur pour la version web.
 
 ## Développement
 
@@ -53,7 +53,7 @@ uv run python -m pygbag --template web/template.tmpl src   # version web sur htt
 - **M2** : météorites, collisions, score, difficulté ✅
 - **M3** : bonus (bouclier, vie), HUD, meilleur score ✅
 - **M4** : menu, pause, game over, sons, explosions, fond défilant, version web ✅ → **v1.0**
-- **v2** : déplacement 8 directions et météorites qui se brisent ✅, ennemis et vagues ✅, armes ✅, boss toutes les 4 vagues ✅, manette et touches personnalisables ✅, top 10
+- **v2** : déplacement 8 directions et météorites qui se brisent ✅, ennemis et vagues ✅, armes ✅, boss toutes les 4 vagues ✅, manette et touches personnalisables ✅, top 10 local ✅
 
 ## Crédits et licences
 

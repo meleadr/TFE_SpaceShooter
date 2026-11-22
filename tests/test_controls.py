@@ -192,6 +192,7 @@ def screen(display, tmp_path):
     save = SaveData(tmp_path / "save.json")
     manager.push(TitleScene(manager, save))
     manager.handle_event(key(pygame.K_DOWN))
+    manager.handle_event(key(pygame.K_DOWN))
     manager.handle_event(key(pygame.K_RETURN))
     assert isinstance(manager.top, ControlsScene)
     return manager, save

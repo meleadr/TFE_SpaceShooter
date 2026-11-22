@@ -59,7 +59,7 @@ class GameScene(Scene):
         self.score = 0
         self.best_before = save.best_score
         self.game_over = False
-        self.new_record = False
+        self.rank: int | None = None  # place in the top 10 once the game is over
         self.game_over_timer = 0.0
         self.time = 0.0
         self.hud = Hud()
@@ -103,9 +103,7 @@ class GameScene(Scene):
         if self.game_over:
             self.game_over_timer += dt
             if self.game_over_timer >= self.GAME_OVER_DELAY and self.manager.top is self:
-                self.manager.push(
-                    GameOverScene(self.manager, self.save, self.score, self.new_record)
-                )
+                self.manager.push(GameOverScene(self.manager, self.save, self.score, self.rank))
         else:
             self.resolve_collisions()
 
@@ -194,7 +192,7 @@ class GameScene(Scene):
 
     def end_game(self) -> None:
         self.game_over = True
-        self.new_record = self.save.submit_score(self.score)
+        self.rank = self.save.submit_score(self.score)
         self.particles.burst(
             self.player.rect.center, 90, FIRE_COLORS, speed=(80, 380), size=(3, 8), life=(0.6, 1.4)
         )

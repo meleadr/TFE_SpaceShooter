@@ -9,6 +9,7 @@ from spaceshooter.scenes import SceneManager
 from spaceshooter.scenes.game import GameScene
 from spaceshooter.scenes.gameover import GameOverScene
 from spaceshooter.scenes.pause import PauseScene
+from spaceshooter.scenes.scores import ScoresScene
 from spaceshooter.scenes.title import TitleScene
 from spaceshooter.settings import HEIGHT, WIDTH
 
@@ -61,10 +62,10 @@ def test_paused_game_does_not_advance(display, manager, save):
     assert game.starfield.offset == before
 
 
-@pytest.mark.parametrize(("moves", "expected"), [(0, GameScene), (1, TitleScene)])
+@pytest.mark.parametrize(("moves", "expected"), [(0, GameScene), (2, TitleScene)])
 def test_game_over_menu(display, manager, save, moves, expected):
     manager.push(GameScene(manager, save))
-    over = GameOverScene(manager, save, score=5, new_record=False)
+    over = GameOverScene(manager, save, score=5, rank=None)
     manager.push(over)
     press(over, pygame.K_RETURN)  # ignored: too early, could be a held fire key
     assert manager.top is over
@@ -83,7 +84,9 @@ def test_every_scene_draws(display, manager, save):
         TitleScene(manager, save),
         game,
         PauseScene(manager, save),
-        GameOverScene(manager, save, 3, True),
+        GameOverScene(manager, save, 3, 1),
+        GameOverScene(manager, save, 3, None),
+        ScoresScene(manager, save),
     ):
         scene.update(0.1)
         scene.draw(screen)
