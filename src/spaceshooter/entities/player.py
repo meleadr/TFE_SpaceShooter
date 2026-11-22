@@ -1,0 +1,34 @@
+import pygame
+
+from spaceshooter import assets
+from spaceshooter.controls import PlayerInput
+from spaceshooter.entities.bullet import Bullet
+from spaceshooter.settings import HEIGHT, WIDTH
+
+PLAYFIELD = pygame.Rect(0, 0, WIDTH, HEIGHT)
+
+
+class Player(pygame.sprite.Sprite):
+    SPEED = 360.0  # px/s (the 2019 version moved 6 px per frame at 60 fps)
+    FIRE_COOLDOWN = 0.3  # seconds between two shots
+    BOTTOM_MARGIN = 30
+
+    def __init__(self, bullets: pygame.sprite.Group, *groups: pygame.sprite.Group) -> None:
+        super().__init__(*groups)
+        self.image = assets.image("playerShip1_blue.png", 0.8)
+        self.rect = self.image.get_frect(midbottom=(WIDTH / 2, HEIGHT - self.BOTTOM_MARGIN))
+        self.bullets = bullets
+        self.input = PlayerInput(direction=0, fire=False)
+        self.cooldown = 0.0
+
+    def update(self, dt: float) -> None:
+        self.rect.x += self.input.direction * self.SPEED * dt
+        self.rect.clamp_ip(PLAYFIELD)
+
+        self.cooldown = max(self.cooldown - dt, 0.0)
+        if self.input.fire and self.cooldown == 0.0:
+            self.fire()
+
+    def fire(self) -> None:
+        Bullet(self.rect.midtop, self.bullets)
+        self.cooldown = self.FIRE_COOLDOWN

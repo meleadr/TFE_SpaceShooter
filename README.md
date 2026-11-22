@@ -30,7 +30,7 @@ uv run pytest            # tests (headless)
 ## Feuille de route
 
 - **M0** : outillage, boucle à pas fixe, pile de scènes ✅
-- **M1** : vaisseau et tir
+- **M1** : vaisseau et tir ✅
 - **M2** : météorites, collisions, score, difficulté
 - **M3** : bonus (bouclier, vie), HUD, meilleur score
 - **M4** : menu, pause, game over, sons, fond défilant → **v1.0** (+ version web via pygbag)
@@ -38,4 +38,4 @@ uv run pytest            # tests (headless)
 
 ## Licence
 
-Code sous licence [MIT](LICENSE). Les assets graphiques et sonores proviennent de [Kenney](https://kenney.nl/) (CC0).
+Code sous licence [MIT](LICENSE). Les images, sons et polices proviennent du pack [Space Shooter Redux de Kenney](https://kenney.nl/assets/space-shooter-redux) (CC0, voir `src/spaceshooter/data/LICENSE-kenney.txt`).
