@@ -21,6 +21,7 @@ def game(display, tmp_path):
     # Tests place meteors and power-ups themselves.
     scene.meteor_spawner.timer = float("inf")
     scene.powerup_spawner.timer = float("inf")
+    scene.waves.timer = float("inf")
     return scene
 
 

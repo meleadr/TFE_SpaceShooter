@@ -12,6 +12,7 @@ log = logging.getLogger(__name__)
 # Event name -> (candidate files, volume). A random candidate is played each time.
 SOUNDS: dict[str, tuple[tuple[str, ...], float]] = {
     "shoot": (("sfx_laser1.ogg",), 0.25),
+    "enemy_shoot": (("laserSmall_000.ogg",), 0.2),
     "explosion": (tuple(f"explosionCrunch_00{i}.ogg" for i in range(4)), 0.45),
     "player_hit": (("lowFrequency_explosion_000.ogg",), 0.8),
     "shield_up": (("sfx_shieldUp.ogg",), 0.6),

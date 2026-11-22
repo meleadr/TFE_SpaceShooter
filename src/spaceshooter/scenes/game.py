@@ -20,8 +20,12 @@ from spaceshooter.save import SaveData
 from spaceshooter.scenes.base import Scene, SceneManager
 from spaceshooter.scenes.gameover import GameOverScene
 from spaceshooter.scenes.pause import PauseScene
+from spaceshooter.settings import HEIGHT, WIDTH
+from spaceshooter.ui import GOLD, draw_text
+from spaceshooter.waves import WaveDirector
 
 PAUSE_KEYS = (pygame.K_ESCAPE, pygame.K_p)
+ENEMY_COLORS = [(255, 90, 60), (255, 170, 60), (255, 240, 180), (140, 220, 120)]
 
 
 class GameScene(Scene):
@@ -41,15 +45,19 @@ class GameScene(Scene):
         self.bullets = pygame.sprite.Group()
         self.meteors = pygame.sprite.Group()
         self.powerups = pygame.sprite.Group()
+        self.enemies = pygame.sprite.Group()
+        self.enemy_bullets = pygame.sprite.Group()
         self.player = Player(self.bullets)
         self.players = pygame.sprite.GroupSingle(self.player)
         self.meteor_spawner = MeteorSpawner(self.meteors, self.rng)
         self.powerup_spawner = PowerUpSpawner(self.powerups, self.rng)
+        self.waves = WaveDirector(self.enemies, self.enemy_bullets, self.rng)
         self.score = 0
         self.best_before = save.best_score
         self.game_over = False
         self.new_record = False
         self.game_over_timer = 0.0
+        self.time = 0.0
         self.hud = Hud()
 
     @property
@@ -72,15 +80,20 @@ class GameScene(Scene):
 
     def step(self, dt: float) -> None:
         """Advance the world by one fixed step (input already applied)."""
+        self.time += dt
         self.starfield.update(dt)
         self.particles.update(dt)
         if not self.game_over:
             self.players.update(dt)
-            self.meteor_spawner.update(dt, self.score)
+            self.waves.update(dt)
+            if not self.waves.active:  # meteors pause while an enemy wave is on
+                self.meteor_spawner.update(dt, self.score)
             self.powerup_spawner.update(dt, self.player.is_hurt)
         self.bullets.update(dt)
         self.meteors.update(dt)
         self.powerups.update(dt)
+        self.enemies.update(dt, self.player.rect.center)
+        self.enemy_bullets.update(dt)
         if self.game_over:
             self.game_over_timer += dt
             if self.game_over_timer >= self.GAME_OVER_DELAY and self.manager.top is self:
@@ -91,6 +104,22 @@ class GameScene(Scene):
             self.resolve_collisions()
 
     def resolve_collisions(self) -> None:
+        self.shoot_meteors()
+        self.shoot_enemies()
+        for group, colors in (
+            (self.meteors, ROCK_COLORS),
+            (self.enemies, ENEMY_COLORS),
+            (self.enemy_bullets, FIRE_COLORS),
+        ):
+            for sprite in pygame.sprite.spritecollide(
+                self.player, group, False, pygame.sprite.collide_circle
+            ):
+                self.crash(sprite, colors)
+        self.collect_powerups()
+        if not self.player.has_lives:
+            self.end_game()
+
+    def shoot_meteors(self) -> None:
         shot = pygame.sprite.groupcollide(
             self.meteors, self.bullets, True, True, pygame.sprite.collide_circle
         )
@@ -100,21 +129,35 @@ class GameScene(Scene):
             audio.play("explosion")
         self.score += len(shot)
 
-        crashed = pygame.sprite.spritecollide(
-            self.player, self.meteors, False, pygame.sprite.collide_circle
+    def shoot_enemies(self) -> None:
+        hits = pygame.sprite.groupcollide(
+            self.enemies, self.bullets, False, True, pygame.sprite.collide_circle
         )
-        for meteor in crashed:
-            result = self.player.hit()
-            if result is HitResult.IGNORED:
-                continue
-            meteor.kill()  # a crash destroys it outright, no fragments
-            self.particles.burst(meteor.rect.center, meteor.size.particles, ROCK_COLORS)
-            if result is HitResult.DAMAGED:
-                self.particles.burst(self.player.rect.center, 30, FIRE_COLORS, size=(3, 6))
-                audio.play("player_hit")
-            else:
-                audio.play("explosion")
+        for enemy, bullets in hits.items():
+            for _ in bullets:
+                if not enemy.alive():
+                    break
+                if enemy.damage():
+                    self.score += enemy.SCORE
+                    self.particles.burst(enemy.rect.center, 36, ENEMY_COLORS, size=(3, 7))
+                    audio.play("explosion")
+                else:
+                    self.particles.burst(enemy.rect.center, 6, FIRE_COLORS, speed=(40, 120))
 
+    def crash(self, sprite: pygame.sprite.Sprite, colors: list[tuple[int, int, int]]) -> None:
+        """Something hit the player ship: meteor, enemy ship or enemy shot."""
+        result = self.player.hit()
+        if result is HitResult.IGNORED:
+            return
+        sprite.kill()  # destroyed outright: no fragments, no score
+        self.particles.burst(sprite.rect.center, 16, colors)
+        if result is HitResult.DAMAGED:
+            self.particles.burst(self.player.rect.center, 30, FIRE_COLORS, size=(3, 6))
+            audio.play("player_hit")
+        else:
+            audio.play("explosion")
+
+    def collect_powerups(self) -> None:
         for powerup in pygame.sprite.spritecollide(self.player, self.powerups, True):
             if powerup.kind is PowerUpKind.SHIELD:
                 self.player.activate_shield()
@@ -122,9 +165,6 @@ class GameScene(Scene):
             else:
                 self.player.gain_life()
                 audio.play("life_up")
-
-        if not self.player.has_lives:
-            self.end_game()
 
     def end_game(self) -> None:
         self.game_over = True
@@ -138,9 +178,14 @@ class GameScene(Scene):
         self.starfield.draw(surface)
         self.powerups.draw(surface)
         self.meteors.draw(surface)
+        self.enemies.draw(surface)
         self.bullets.draw(surface)
+        self.enemy_bullets.draw(surface)
         if not self.game_over:
             self.players.draw(surface)
             self.player.draw_shield(surface)
         self.particles.draw(surface)
         self.hud.draw(surface, self.score, self.best_before, self.level, self.player)
+        banner = self.waves.banner
+        if banner and int(self.time * 4) % 2 == 0:  # blinks twice a second
+            draw_text(surface, banner, 48, (WIDTH / 2, HEIGHT * 0.4), GOLD)
