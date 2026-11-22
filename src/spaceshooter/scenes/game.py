@@ -6,7 +6,7 @@ import pygame
 
 from spaceshooter import difficulty
 from spaceshooter.audio import audio
-from spaceshooter.controls import PlayerInput, read_input
+from spaceshooter.controls import Command, PlayerInput, command, read_input
 from spaceshooter.effects import FIRE_COLORS, ROCK_COLORS, Particles, Starfield
 from spaceshooter.entities import (
     Boss,
@@ -18,6 +18,7 @@ from spaceshooter.entities import (
     PowerUpKind,
     PowerUpSpawner,
 )
+from spaceshooter.gamepad import gamepads
 from spaceshooter.hud import Hud
 from spaceshooter.save import SaveData
 from spaceshooter.scenes.base import Scene, SceneManager
@@ -27,7 +28,6 @@ from spaceshooter.settings import HEIGHT, WIDTH
 from spaceshooter.ui import GOLD, draw_text
 from spaceshooter.waves import WaveDirector
 
-PAUSE_KEYS = (pygame.K_ESCAPE, pygame.K_p)
 MAXED_WEAPON_BONUS = 5  # points for a weapon pickup when already at max
 ENEMY_COLORS = [(255, 90, 60), (255, 170, 60), (255, 240, 180), (140, 220, 120)]
 
@@ -71,15 +71,17 @@ class GameScene(Scene):
     def handle_event(self, event: pygame.event.Event) -> None:
         if self.game_over:
             return
-        pause = event.type == pygame.KEYDOWN and event.key in PAUSE_KEYS
-        if pause or event.type == pygame.WINDOWFOCUSLOST:
+        pause = command(event) in (Command.BACK, Command.PAUSE)
+        unplugged = event.type == pygame.JOYDEVICEREMOVED  # a pad was pulled out mid-game
+        if pause or unplugged or event.type == pygame.WINDOWFOCUSLOST:
             self.manager.push(PauseScene(self.manager, self.save))
 
     def update(self, dt: float) -> None:
         if self.game_over:
             self.player.input = PlayerInput()
         else:
-            self.player.input = read_input(pygame.key.get_pressed())
+            keyboard = read_input(pygame.key.get_pressed(), self.save.bindings)
+            self.player.input = keyboard | gamepads.read()
         self.step(dt)
 
     def step(self, dt: float) -> None:

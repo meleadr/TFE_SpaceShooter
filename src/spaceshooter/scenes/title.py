@@ -5,7 +5,9 @@ import sys
 
 import pygame
 
+from spaceshooter.controls import Action, Command, command
 from spaceshooter.effects import Starfield
+from spaceshooter.gamepad import gamepads
 from spaceshooter.save import SaveData
 from spaceshooter.scenes.base import Scene, SceneManager
 from spaceshooter.settings import HEIGHT, WIDTH
@@ -20,7 +22,7 @@ class TitleScene(Scene):
         self.save = save
         self.starfield = Starfield()
         self.time = 0.0
-        items = [("Jouer", self.start_game)]
+        items = [("Jouer", self.start_game), ("Commandes", self.open_controls)]
         if not IS_WEB:  # a browser tab cannot be closed from the game
             items.append(("Quitter", manager.quit))
         self.menu = Menu(items, top=HEIGHT / 2 + 40)
@@ -30,11 +32,28 @@ class TitleScene(Scene):
 
         self.manager.reset(GameScene(self.manager, self.save))
 
+    def open_controls(self) -> None:
+        from spaceshooter.scenes.controls import ControlsScene
+
+        self.manager.push(ControlsScene(self.manager, self.save, self.starfield))
+
     def handle_event(self, event: pygame.event.Event) -> None:
-        if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE and not IS_WEB:
+        if command(event) is Command.BACK and not IS_WEB:
             self.manager.quit()
         else:
             self.menu.handle_event(event)
+
+    def keys_hint(self) -> str:
+        bindings = self.save.bindings
+        if bindings.is_default:
+            return "Flèches / ZQSD / WASD : bouger   Espace : tirer"
+        move = " ".join(
+            bindings.label(a) for a in (Action.UP, Action.LEFT, Action.DOWN, Action.RIGHT)
+        )
+        fire = "Espace" + (
+            f" / {bindings.label(Action.FIRE)}" if bindings.custom[Action.FIRE] else ""
+        )
+        return f"Flèches / {move} : bouger   {fire} : tirer"
 
     def update(self, dt: float) -> None:
         self.time += dt
@@ -49,13 +68,15 @@ class TitleScene(Scene):
         if self.save.best_score:
             draw_text(surface, f"Record : {self.save.best_score}", 22, (WIDTH / 2, 370), GOLD)
         self.menu.draw(surface)
-        draw_text(
-            surface,
-            "Flèches / ZQSD / WASD : bouger   Espace : tirer",
-            14,
-            (WIDTH / 2, HEIGHT - 60),
-            GREY,
-        )
+        if gamepads.count:
+            draw_text(
+                surface,
+                "Manette : stick / croix, A : tirer, Start : pause",
+                14,
+                (WIDTH / 2, HEIGHT - 85),
+                GOLD,
+            )
+        draw_text(surface, self.keys_hint(), 14, (WIDTH / 2, HEIGHT - 60), GREY)
         draw_text(
             surface,
             "Échap / P : pause   M : son   F11 : plein écran",

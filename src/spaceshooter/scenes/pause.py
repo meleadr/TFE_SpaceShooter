@@ -2,12 +2,11 @@
 
 import pygame
 
+from spaceshooter.controls import Command, command
 from spaceshooter.save import SaveData
 from spaceshooter.scenes.base import Scene, SceneManager
 from spaceshooter.settings import HEIGHT, WIDTH
 from spaceshooter.ui import Menu, dim, draw_text
-
-RESUME_KEYS = (pygame.K_ESCAPE, pygame.K_p)
 
 
 class PauseScene(Scene):
@@ -29,7 +28,7 @@ class PauseScene(Scene):
         self.manager.reset(TitleScene(self.manager, self.save))
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        if event.type == pygame.KEYDOWN and event.key in RESUME_KEYS:
+        if command(event) in (Command.BACK, Command.PAUSE):
             self.resume()
         else:
             self.menu.handle_event(event)

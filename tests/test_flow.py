@@ -35,7 +35,7 @@ def test_title_play_starts_a_game(display, manager, save):
 
 def test_title_quit_option(display, manager, save):
     manager.push(TitleScene(manager, save))
-    press(manager.top, pygame.K_DOWN)
+    press(manager.top, pygame.K_UP)  # wraps around to the last option
     press(manager.top, pygame.K_RETURN)
     assert not manager.running
 

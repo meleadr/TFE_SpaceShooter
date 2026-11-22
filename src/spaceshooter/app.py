@@ -5,6 +5,7 @@ import asyncio
 import pygame
 
 from spaceshooter.audio import audio
+from spaceshooter.gamepad import gamepads
 from spaceshooter.save import SaveData
 from spaceshooter.scenes import SceneManager
 from spaceshooter.scenes.title import TitleScene
@@ -17,6 +18,7 @@ class App:
         pygame.mixer.pre_init(44100, -16, 2, 512)  # small buffer: low latency for sound effects
         pygame.init()
         audio.init()
+        gamepads.init()
         pygame.display.set_caption(TITLE)
         self.screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.SCALED)
         self.clock = pygame.time.Clock()
@@ -33,6 +35,8 @@ class App:
         elif event.type == pygame.KEYDOWN and event.key == pygame.K_m:
             audio.toggle_mute()
         else:
+            if event.type in (pygame.JOYDEVICEADDED, pygame.JOYDEVICEREMOVED):
+                gamepads.handle_event(event)
             self.scenes.handle_event(event)
 
     def frame(self, frame_time: float) -> None:

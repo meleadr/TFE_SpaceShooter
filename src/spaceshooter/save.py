@@ -1,8 +1,10 @@
-"""Persistent player data (best score), stored as JSON in the user's data folder."""
+"""Persistent player data (best score, key bindings), stored as JSON in the user's data folder."""
 
 import json
 import logging
 from pathlib import Path
+
+from spaceshooter.controls import Bindings
 
 log = logging.getLogger(__name__)
 
@@ -20,6 +22,7 @@ class SaveData:
     def __init__(self, path: Path | None = None) -> None:
         self.path = path or default_path()
         self.best_score = 0
+        self.bindings = Bindings()
         self.load()
 
     def load(self) -> None:
@@ -27,6 +30,7 @@ class SaveData:
         try:
             data = json.loads(self.path.read_text(encoding="utf-8"))
             self.best_score = max(int(data.get("best_score", 0)), 0)
+            self.bindings = Bindings.from_json(data.get("bindings"))
         except FileNotFoundError:
             pass
         except (OSError, ValueError, TypeError, AttributeError) as error:
@@ -35,7 +39,8 @@ class SaveData:
     def save(self) -> None:
         try:
             self.path.parent.mkdir(parents=True, exist_ok=True)
-            self.path.write_text(json.dumps({"best_score": self.best_score}), encoding="utf-8")
+            data = {"best_score": self.best_score, "bindings": self.bindings.to_json()}
+            self.path.write_text(json.dumps(data), encoding="utf-8")
         except OSError as error:
             log.warning("Could not write save file %s: %s", self.path, error)
 

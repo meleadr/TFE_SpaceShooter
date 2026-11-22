@@ -27,7 +27,13 @@ uv run spaceshooter
 | M | Couper / remettre le son |
 | F11 | Plein écran |
 
-Le record est sauvegardé dans `%APPDATA%\spaceshooter\save.json` (Windows).
+Les touches (hors flèches et Espace, toujours actives) se changent dans **Commandes**
+depuis l'écran titre.
+
+**Manette** (Xbox, PlayStation, Switch Pro… branchée à chaud) : stick gauche ou croix pour
+bouger, A / X / RB / RT pour tirer, Start pour la pause, A / B pour valider / revenir.
+
+Le record et les touches sont sauvegardés dans `%APPDATA%\spaceshooter\save.json` (Windows).
 
 ## Développement
 
@@ -47,7 +53,7 @@ uv run python -m pygbag --template web/template.tmpl src   # version web sur htt
 - **M2** : météorites, collisions, score, difficulté ✅
 - **M3** : bonus (bouclier, vie), HUD, meilleur score ✅
 - **M4** : menu, pause, game over, sons, explosions, fond défilant, version web ✅ → **v1.0**
-- **v2** : déplacement 8 directions et météorites qui se brisent ✅, ennemis et vagues ✅, armes ✅, boss toutes les 4 vagues ✅, manette, top 10
+- **v2** : déplacement 8 directions et météorites qui se brisent ✅, ennemis et vagues ✅, armes ✅, boss toutes les 4 vagues ✅, manette et touches personnalisables ✅, top 10
 
 ## Crédits et licences
 

@@ -1,4 +1,4 @@
-"""Small UI helpers: centered text, dimming overlay and keyboard menus."""
+"""Small UI helpers: centered text, dimming overlay and menus."""
 
 from collections.abc import Callable
 
@@ -6,15 +6,12 @@ import pygame
 
 from spaceshooter import assets
 from spaceshooter.audio import audio
+from spaceshooter.controls import Command, command
 from spaceshooter.settings import HEIGHT, WIDTH
 
 WHITE = (255, 255, 255)
 GREY = (170, 170, 200)
 GOLD = (255, 210, 90)
-
-UP_KEYS = (pygame.K_UP, pygame.K_w, pygame.K_z)
-DOWN_KEYS = (pygame.K_DOWN, pygame.K_s)
-CONFIRM_KEYS = (pygame.K_RETURN, pygame.K_KP_ENTER, pygame.K_SPACE)
 
 
 def draw_text(
@@ -35,32 +32,37 @@ def dim(surface: pygame.Surface, alpha: int = 160) -> None:
 
 
 class Menu:
-    """Vertical list of options driven by the keyboard."""
+    """Vertical list of options driven by the keyboard or a gamepad."""
 
-    SPACING = 56
-
-    def __init__(self, items: list[tuple[str, Callable[[], None]]], top: float) -> None:
+    def __init__(
+        self,
+        items: list[tuple[str, Callable[[], None]]],
+        top: float,
+        spacing: float = 56,
+        size: int = 26,
+    ) -> None:
         self.items = items
         self.top = top
+        self.spacing = spacing
+        self.size = size
         self.selected = 0
 
     def handle_event(self, event: pygame.event.Event) -> None:
-        if event.type != pygame.KEYDOWN:
-            return
-        if event.key in UP_KEYS:
-            self.selected = (self.selected - 1) % len(self.items)
-            audio.play("menu_move")
-        elif event.key in DOWN_KEYS:
-            self.selected = (self.selected + 1) % len(self.items)
-            audio.play("menu_move")
-        elif event.key in CONFIRM_KEYS:
-            audio.play("menu_confirm")
-            self.items[self.selected][1]()
+        match command(event):
+            case Command.UP:
+                self.selected = (self.selected - 1) % len(self.items)
+                audio.play("menu_move")
+            case Command.DOWN:
+                self.selected = (self.selected + 1) % len(self.items)
+                audio.play("menu_move")
+            case Command.CONFIRM:
+                audio.play("menu_confirm")
+                self.items[self.selected][1]()
 
     def draw(self, surface: pygame.Surface) -> None:
         for index, (label, _) in enumerate(self.items):
-            y = self.top + index * self.SPACING
+            y = self.top + index * self.spacing
             if index == self.selected:
-                draw_text(surface, f">  {label}  <", 30, (WIDTH / 2, y), GOLD)
+                draw_text(surface, f">  {label}  <", self.size + 4, (WIDTH / 2, y), GOLD)
             else:
-                draw_text(surface, label, 26, (WIDTH / 2, y), GREY)
+                draw_text(surface, label, self.size, (WIDTH / 2, y), GREY)
