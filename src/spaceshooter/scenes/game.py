@@ -65,7 +65,7 @@ class GameScene(Scene):
 
     def update(self, dt: float) -> None:
         if self.game_over:
-            self.player.input = PlayerInput(direction=0, fire=False)
+            self.player.input = PlayerInput()
         else:
             self.player.input = read_input(pygame.key.get_pressed())
         self.step(dt)
@@ -95,7 +95,8 @@ class GameScene(Scene):
             self.meteors, self.bullets, True, True, pygame.sprite.collide_circle
         )
         for meteor in shot:
-            self.particles.burst(meteor.rect.center, 24, ROCK_COLORS)
+            meteor.split(self.rng, self.meteors)
+            self.particles.burst(meteor.rect.center, meteor.size.particles, ROCK_COLORS)
             audio.play("explosion")
         self.score += len(shot)
 
@@ -106,8 +107,8 @@ class GameScene(Scene):
             result = self.player.hit()
             if result is HitResult.IGNORED:
                 continue
-            meteor.kill()
-            self.particles.burst(meteor.rect.center, 24, ROCK_COLORS)
+            meteor.kill()  # a crash destroys it outright, no fragments
+            self.particles.burst(meteor.rect.center, meteor.size.particles, ROCK_COLORS)
             if result is HitResult.DAMAGED:
                 self.particles.burst(self.player.rect.center, 30, FIRE_COLORS, size=(3, 6))
                 audio.play("player_hit")

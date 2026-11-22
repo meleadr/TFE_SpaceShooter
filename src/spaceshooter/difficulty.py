@@ -3,7 +3,9 @@
 Pure functions so the balance can be tested and tuned without running the game.
 """
 
-POINTS_PER_LEVEL = 8  # same pace as the 2019 version
+# Every shot meteor scores 1 and a big one yields up to 7 hits once split, hence a slower
+# pace than the 8 points per level of the 2019 version.
+POINTS_PER_LEVEL = 20
 
 
 def level(score: int) -> int:

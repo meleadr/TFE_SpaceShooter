@@ -7,17 +7,26 @@ import pygame
 
 LEFT_KEYS = (pygame.K_LEFT, pygame.K_a, pygame.K_q)
 RIGHT_KEYS = (pygame.K_RIGHT, pygame.K_d)
-FIRE_KEYS = (pygame.K_SPACE, pygame.K_UP, pygame.K_w, pygame.K_z)
+UP_KEYS = (pygame.K_UP, pygame.K_w, pygame.K_z)
+DOWN_KEYS = (pygame.K_DOWN, pygame.K_s)
+FIRE_KEYS = (pygame.K_SPACE,)
 
 
 @dataclass(frozen=True)
 class PlayerInput:
-    direction: int  # -1 left, 0 none, +1 right
-    fire: bool
+    dx: int = 0  # -1 left, 0 none, +1 right
+    dy: int = 0  # -1 up, 0 none, +1 down
+    fire: bool = False
+
+
+def _held(pressed: Sequence[bool], keys: tuple[int, ...]) -> bool:
+    return any(pressed[key] for key in keys)
 
 
 def read_input(pressed: Sequence[bool]) -> PlayerInput:
     """Translate the state from pygame.key.get_pressed() into player intent."""
-    left = any(pressed[key] for key in LEFT_KEYS)
-    right = any(pressed[key] for key in RIGHT_KEYS)
-    return PlayerInput(direction=int(right) - int(left), fire=any(pressed[k] for k in FIRE_KEYS))
+    return PlayerInput(
+        dx=int(_held(pressed, RIGHT_KEYS)) - int(_held(pressed, LEFT_KEYS)),
+        dy=int(_held(pressed, DOWN_KEYS)) - int(_held(pressed, UP_KEYS)),
+        fire=_held(pressed, FIRE_KEYS),
+    )

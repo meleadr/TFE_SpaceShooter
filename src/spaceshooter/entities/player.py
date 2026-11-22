@@ -8,7 +8,9 @@ from spaceshooter.controls import PlayerInput
 from spaceshooter.entities.bullet import Bullet
 from spaceshooter.settings import HEIGHT, WIDTH
 
-PLAYFIELD = pygame.Rect(0, 0, WIDTH, HEIGHT)
+# The ship can roam the whole screen except the HUD band at the top.
+HUD_HEIGHT = 70
+PLAYFIELD = pygame.Rect(0, HUD_HEIGHT, WIDTH, HEIGHT - HUD_HEIGHT)
 
 
 class HitResult(Enum):
@@ -36,7 +38,7 @@ class Player(pygame.sprite.Sprite):
         self.rect = self.image.get_frect(midbottom=(WIDTH / 2, HEIGHT - self.BOTTOM_MARGIN))
         self.radius = min(self.image.get_size()) * self.HITBOX_RATIO
         self.bullets = bullets
-        self.input = PlayerInput(direction=0, fire=False)
+        self.input = PlayerInput()
         self.cooldown = 0.0
         self.lives = self.MAX_LIVES
         self.invulnerable = 0.0
@@ -51,7 +53,10 @@ class Player(pygame.sprite.Sprite):
         return self.lives < self.MAX_LIVES
 
     def update(self, dt: float) -> None:
-        self.rect.x += self.input.direction * self.SPEED * dt
+        move = pygame.Vector2(self.input.dx, self.input.dy)
+        if move:
+            # Normalised so diagonals are not faster than straight lines.
+            self.rect.center += move.normalize() * self.SPEED * dt
         self.rect.clamp_ip(PLAYFIELD)
 
         self.cooldown = max(self.cooldown - dt, 0.0)

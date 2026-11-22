@@ -50,7 +50,11 @@ class TitleScene(Scene):
             draw_text(surface, f"Record : {self.save.best_score}", 22, (WIDTH / 2, 370), GOLD)
         self.menu.draw(surface)
         draw_text(
-            surface, "Flèches / QD : bouger   Espace : tirer", 14, (WIDTH / 2, HEIGHT - 60), GREY
+            surface,
+            "Flèches / ZQSD / WASD : bouger   Espace : tirer",
+            14,
+            (WIDTH / 2, HEIGHT - 60),
+            GREY,
         )
         draw_text(
             surface,

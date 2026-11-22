@@ -3,8 +3,8 @@ import pytest
 from spaceshooter import difficulty
 
 
-@pytest.mark.parametrize(("score", "lvl"), [(0, 0), (7, 0), (8, 1), (9, 1), (17, 2), (80, 10)])
-def test_level_rises_every_8_points_even_when_skipping_the_exact_value(score, lvl):
+@pytest.mark.parametrize(("score", "lvl"), [(0, 0), (19, 0), (20, 1), (21, 1), (41, 2), (200, 10)])
+def test_level_rises_every_20_points_even_when_skipping_the_exact_value(score, lvl):
     assert difficulty.level(score) == lvl
 
 

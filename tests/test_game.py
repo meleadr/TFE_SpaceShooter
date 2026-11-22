@@ -6,7 +6,7 @@ import pytest
 from spaceshooter import difficulty
 from spaceshooter.controls import PlayerInput
 from spaceshooter.entities import Bullet, HitResult, Meteor, Player, PowerUp, PowerUpKind
-from spaceshooter.entities.meteor import METEOR_IMAGES
+from spaceshooter.entities.meteor import MeteorSize, MeteorSpawner, on_screen_weight
 from spaceshooter.save import SaveData
 from spaceshooter.scenes import SceneManager
 from spaceshooter.scenes.game import GameScene
@@ -24,9 +24,14 @@ def game(display, tmp_path):
     return scene
 
 
-def place_meteor(game: GameScene, center: tuple[float, float], speed: float = 0.0) -> Meteor:
-    meteor = Meteor(center[0], speed, 0.0, METEOR_IMAGES[0], game.meteors)
-    meteor.position.update(center)
+def place_meteor(
+    game: GameScene,
+    center: tuple[float, float],
+    speed: float = 0.0,
+    size: MeteorSize = MeteorSize.BIG,
+) -> Meteor:
+    image = size.image_names("Brown")[0]
+    meteor = Meteor(size, "Brown", image, center, (0, speed), 0.0, game.meteors)
     meteor.update(0.0)
     return meteor
 
@@ -40,12 +45,13 @@ def test_meteor_falls_and_is_removed_below_screen(game):
 
 
 def test_shooting_a_meteor_scores_and_removes_both(game):
-    meteor = place_meteor(game, (300, 300))
-    Bullet((300, 340), game.bullets)
+    meteor = place_meteor(game, (300, 300), size=MeteorSize.SMALL)
+    Bullet((300, 330), game.bullets)
     game.step(STEP)
     assert game.score == 1
     assert not meteor.alive()
     assert len(game.bullets) == 0
+    assert len(game.meteors) == 0  # the smallest size does not split
 
 
 def test_meteor_hit_costs_a_life_then_grants_grace(game):
@@ -83,7 +89,7 @@ def test_player_is_frozen_once_dead(game):
     game.player.lives = 0
     game.step(STEP)
     x = game.player.rect.x
-    game.player.input = PlayerInput(direction=1, fire=True)
+    game.player.input = PlayerInput(dx=1, fire=True)
     game.step(STEP)
     assert game.player.rect.x == x
     assert len(game.bullets) == 0
@@ -107,7 +113,8 @@ def test_spawner_respects_max_meteors(game):
     game.meteor_spawner.timer = 0.0
     for _ in range(round(10 / STEP)):
         game.meteor_spawner.update(STEP, score=0)
-    assert len(game.meteors) == difficulty.max_meteors(0)
+    assert on_screen_weight(game.meteors) >= difficulty.max_meteors(0)
+    assert on_screen_weight(game.meteors) < difficulty.max_meteors(0) + 1
     for meteor in game.meteors:
         assert meteor.rect.left >= 0 and meteor.rect.right <= WIDTH
         assert meteor.rect.bottom <= HEIGHT
@@ -162,3 +169,46 @@ def test_game_over_records_best_score(game):
     game.step(STEP)
     assert game.new_record
     assert SaveData(game.save.path).best_score == 12
+
+
+@pytest.mark.parametrize(
+    ("size", "child"), [(MeteorSize.BIG, MeteorSize.MEDIUM), (MeteorSize.MEDIUM, MeteorSize.SMALL)]
+)
+def test_shot_meteor_splits_into_two_smaller_ones_flying_apart(game, size, child):
+    parent = place_meteor(game, (300, 300), speed=200, size=size)
+    Bullet((300, 330), game.bullets)
+    game.step(STEP)
+    assert game.score == 1 and not parent.alive()
+    fragments = list(game.meteors)
+    assert [f.size for f in fragments] == [child, child]
+    assert sorted(f.velocity.x > 0 for f in fragments) == [False, True]
+    assert all(f.velocity.y > 0 for f in fragments)
+
+
+def test_crashing_into_a_big_meteor_does_not_split_it(game):
+    place_meteor(game, game.player.rect.center, size=MeteorSize.BIG)
+    game.step(STEP)
+    assert len(game.meteors) == 0
+
+
+def test_big_meteor_takes_seven_shots_to_clear(game):
+    place_meteor(game, (300, 300), size=MeteorSize.BIG)
+    while game.meteors:
+        target = next(iter(game.meteors))
+        target.velocity.update(0, 0)
+        Bullet((target.position.x, target.position.y + 10), game.bullets)
+        game.step(STEP)
+    assert game.score == 7
+
+
+def test_fragments_leaving_the_side_are_removed(game):
+    meteor = place_meteor(game, (5, 300), size=MeteorSize.SMALL)
+    meteor.velocity.update(-300, 0)
+    game.step(0.5)
+    assert not meteor.alive()
+
+
+def test_spawner_mixes_sizes(game):
+    spawner = MeteorSpawner(pygame.sprite.Group(), random.Random(1))
+    sizes = {spawner.spawn(0).size for _ in range(40)}
+    assert sizes == {MeteorSize.BIG, MeteorSize.MEDIUM}

@@ -3,7 +3,8 @@ import pytest
 
 from spaceshooter.controls import PlayerInput, read_input
 from spaceshooter.entities import Bullet, Player
-from spaceshooter.settings import STEP, WIDTH
+from spaceshooter.entities.player import HUD_HEIGHT, PLAYFIELD
+from spaceshooter.settings import HEIGHT, STEP, WIDTH
 
 
 class Keys(dict):
@@ -28,11 +29,14 @@ def player(display):
 @pytest.mark.parametrize(
     ("pressed", "expected"),
     [
-        ({}, PlayerInput(0, False)),
-        ({pygame.K_LEFT: True}, PlayerInput(-1, False)),
-        ({pygame.K_q: True, pygame.K_SPACE: True}, PlayerInput(-1, True)),
-        ({pygame.K_d: True, pygame.K_UP: True}, PlayerInput(1, True)),
-        ({pygame.K_LEFT: True, pygame.K_RIGHT: True}, PlayerInput(0, False)),
+        ({}, PlayerInput()),
+        ({pygame.K_LEFT: True}, PlayerInput(dx=-1)),
+        ({pygame.K_q: True, pygame.K_SPACE: True}, PlayerInput(dx=-1, fire=True)),  # AZERTY
+        ({pygame.K_a: True, pygame.K_w: True}, PlayerInput(dx=-1, dy=-1)),  # QWERTY
+        ({pygame.K_d: True, pygame.K_z: True}, PlayerInput(dx=1, dy=-1)),
+        ({pygame.K_DOWN: True, pygame.K_s: True}, PlayerInput(dy=1)),
+        ({pygame.K_UP: True}, PlayerInput(dy=-1)),  # up moves, it no longer fires
+        ({pygame.K_LEFT: True, pygame.K_RIGHT: True}, PlayerInput()),
     ],
 )
 def test_read_input(pressed, expected):
@@ -45,19 +49,32 @@ def test_player_starts_centered(player):
 
 def test_player_moves_at_constant_speed(player):
     start = player.rect.x
-    simulate(player, 0.5, PlayerInput(direction=1, fire=False))
+    simulate(player, 0.5, PlayerInput(dx=1))
     assert player.rect.x - start == pytest.approx(Player.SPEED * 0.5)
 
 
-@pytest.mark.parametrize("direction", [-1, 1])
-def test_player_stays_on_screen(player, direction):
-    simulate(player, 5.0, PlayerInput(direction=direction, fire=False))
-    assert player.rect.left >= 0
-    assert player.rect.right <= WIDTH
+def test_diagonal_is_not_faster(player):
+    start = pygame.Vector2(player.rect.center)
+    simulate(player, 0.25, PlayerInput(dx=-1, dy=-1))
+    assert start.distance_to(player.rect.center) == pytest.approx(
+        Player.SPEED * 0.25, abs=0.01
+    )  # FRect is float32
+
+
+@pytest.mark.parametrize(("dx", "dy"), [(-1, 0), (1, 0), (0, -1), (0, 1), (1, -1), (-1, 1)])
+def test_player_stays_in_playfield(player, dx, dy):
+    simulate(player, 5.0, PlayerInput(dx=dx, dy=dy))
+    assert PLAYFIELD.contains(player.rect)
+
+
+def test_player_cannot_enter_the_hud_band(player):
+    simulate(player, 5.0, PlayerInput(dy=-1))
+    assert player.rect.top == pytest.approx(HUD_HEIGHT)
+    assert player.rect.bottom <= HEIGHT
 
 
 def test_holding_fire_respects_cooldown(player):
-    simulate(player, 1.0, PlayerInput(direction=0, fire=True))
+    simulate(player, 1.0, PlayerInput(fire=True))
     assert len(player.bullets) == 4  # t = 0, 0.3, 0.6, 0.9
 
 
