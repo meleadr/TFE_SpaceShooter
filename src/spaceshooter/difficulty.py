@@ -13,14 +13,14 @@ def level(score: int) -> int:
 
 def meteor_speed_range(lvl: int) -> tuple[float, float]:
     """Min and max falling speed in px/s."""
-    return min(120.0 + 20.0 * lvl, 450.0), min(220.0 + 30.0 * lvl, 650.0)
+    return min(200.0 + 25.0 * lvl, 500.0), min(320.0 + 35.0 * lvl, 700.0)
 
 
 def max_meteors(lvl: int) -> int:
     """How many meteors may be on screen at once."""
-    return min(3 + lvl // 2, 10)
+    return min(4 + lvl // 2, 10)
 
 
 def spawn_interval(lvl: int) -> float:
     """Minimum delay in seconds between two meteor spawns."""
-    return max(0.8 - 0.05 * lvl, 0.25)
+    return max(0.6 - 0.04 * lvl, 0.25)

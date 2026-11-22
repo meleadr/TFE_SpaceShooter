@@ -19,8 +19,8 @@ def image(name: str, scale: float = 1.0) -> pygame.Surface:
 
 @cache
 def font(size: int) -> pygame.font.Font:
-    """The Kenney Future font at the given size."""
-    return pygame.font.Font(ASSETS_DIR / "fonts" / "kenvector_future.ttf", size)
+    """The Orbitron font (SIL OFL) at the given size."""
+    return pygame.font.Font(ASSETS_DIR / "fonts" / "Orbitron.ttf", size)
 
 
 def tiled(name: str, size: tuple[int, int]) -> pygame.Surface:

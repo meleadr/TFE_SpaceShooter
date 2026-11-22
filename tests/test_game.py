@@ -3,6 +3,7 @@ import random
 import pygame
 import pytest
 
+from spaceshooter import difficulty
 from spaceshooter.entities import Bullet, Meteor, Player
 from spaceshooter.entities.meteor import METEOR_IMAGES
 from spaceshooter.scenes import SceneManager
@@ -82,7 +83,7 @@ def test_spawner_respects_max_meteors(game):
     game.spawner.timer = 0.0
     for _ in range(round(10 / STEP)):
         game.spawner.update(STEP, score=0)
-    assert len(game.meteors) == 3
+    assert len(game.meteors) == difficulty.max_meteors(0)
     for meteor in game.meteors:
         assert meteor.rect.left >= 0 and meteor.rect.right <= WIDTH
         assert meteor.rect.bottom <= HEIGHT

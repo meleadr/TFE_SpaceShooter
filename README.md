@@ -38,4 +38,4 @@ uv run pytest            # tests (headless)
 
 ## Licence
 
-Code sous licence [MIT](LICENSE). Les images, sons et polices proviennent du pack [Space Shooter Redux de Kenney](https://kenney.nl/assets/space-shooter-redux) (CC0, voir `src/spaceshooter/data/LICENSE-kenney.txt`).
+Code sous licence [MIT](LICENSE). La police est [Orbitron](https://github.com/theleagueof/orbitron) (SIL OFL 1.1). Les images et sons proviennent du pack [Space Shooter Redux de Kenney](https://kenney.nl/assets/space-shooter-redux) (CC0, voir `src/spaceshooter/data/LICENSE-kenney.txt`).

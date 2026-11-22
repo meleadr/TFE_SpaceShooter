@@ -82,7 +82,7 @@ class GameScene(Scene):
         if self.game_over:
             for text, font, y in (
                 ("GAME OVER", self.big_font, HEIGHT / 2 - 30),
-                ("Entree pour rejouer", self.font, HEIGHT / 2 + 30),
+                ("Entrée pour rejouer", self.font, HEIGHT / 2 + 30),
             ):
                 label = font.render(text, True, WHITE)
                 surface.blit(label, label.get_rect(center=(WIDTH / 2, y)))
