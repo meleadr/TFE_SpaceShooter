@@ -31,7 +31,7 @@ uv run pytest            # tests (headless)
 
 - **M0** : outillage, boucle à pas fixe, pile de scènes ✅
 - **M1** : vaisseau et tir ✅
-- **M2** : météorites, collisions, score, difficulté
+- **M2** : météorites, collisions, score, difficulté ✅
 - **M3** : bonus (bouclier, vie), HUD, meilleur score
 - **M4** : menu, pause, game over, sons, fond défilant → **v1.0** (+ version web via pygbag)
 - **v2** : déplacement 8 directions, ennemis, armes, boss, manette, top 10

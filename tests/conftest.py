@@ -18,4 +18,5 @@ def display():
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     yield screen
     assets.image.cache_clear()
+    assets.font.cache_clear()
     pygame.quit()
